@@ -1,7 +1,7 @@
 # NChess
 An « intelligent » numworks chessgame.
 
-## Installation
+## Installation
 Important : the development is not finished so there's no usable script (on the numworks) as the variables/functions names make the file too big.
 
 ## Emulation
