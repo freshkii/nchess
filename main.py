@@ -465,11 +465,11 @@ def handle_promotion():
         if keydown(KEY_DOWN) and pcursor != 3:
             draw_border((y,pcursor), 'bg')
             pcursor += 1 if view == 'white' else -1
-            draw_border((y,pcursor), 'grey')
+            draw_border((y,pcursor), 'seco')
         if keydown(KEY_UP) and pcursor != 0:
             draw_border((y,pcursor), 'bg')
             pcursor -= 1 if view == 'white' else -1
-            draw_border((y,pcursor), 'grey')
+            draw_border((y,pcursor), 'seco')
         if keydown(KEY_OK):
             for i in range(4):
                 fill_case(y,i,'bg')
