@@ -1,5 +1,6 @@
 # NChess
 An « intelligent » numworks chessgame.
+
 WARNING: this can contain bugs
 
 ## Features
