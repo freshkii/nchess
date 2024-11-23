@@ -238,12 +238,12 @@ def enemy_there(case):
 def friend_there(case):
     return True if someone_there(case) and get_case_piece_color(case) == view else False
 
-knight_patterns = [(-2, 1), (-1, 2), (2, 1), (1, 2), (-2, -1), (-1, -2), (2, -1), (1, -2)]
-king_patterns = [(1, 1), (0, 1), (-1, -1), (1, 0), (-1, 1), (-1, 0), (1, -1), (0, -1)]
-pawn_attacking_patterns = {'white': [(-1, -1), (1, -1)], 'black': [(-1, 1), (1, 1)]}
+knight_patterns = ((-2, 1), (-1, 2), (2, 1), (1, 2), (-2, -1), (-1, -2), (2, -1), (1, -2))
+king_patterns = ((1, 1), (0, 1), (-1, -1), (1, 0), (-1, 1), (-1, 0), (1, -1), (0, -1))
+pawn_attacking_patterns = {'white': ((-1, -1), (1, -1)), 'black': ((-1, 1), (1, 1))}
 
-straight_directions = [(1, 0), (-1, 0), (0, -1), (0, 1)]
-diagonal_directions = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
+straight_directions = ((1, 0), (-1, 0), (0, -1), (0, 1))
+diagonal_directions = ((-1, -1), (-1, 1), (1, -1), (1, 1))
 
 def is_attacked(case):
     for direction in straight_directions:
@@ -335,9 +335,9 @@ def handle_move(start_case, end_case):
             en_passant[view].remove(start_case[0])
 
     # knight
-    elif piece.lower() == 'n':
-        direction = end_case[0] - start_case[0], end_case[1] - start_case[1]
-        if direction not in knight_patterns: return False
+    elif piece.lower() == 'n'
+        rapport = (end_case[0] - start_case[0]) * (end_case[1] - start_case[1])
+        if rapport != -2 and rapport != 2: return False
         if board[end_case[1]][end_case[0]] and friend_there((end_case[0], end_case[1])): return False
         else:
             board[end_case[1]][end_case[0]] = 'N' if view == 'white' else 'n'
