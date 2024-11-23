@@ -6,117 +6,151 @@ from time import sleep
 # screen
 screen_width, screen_height = 320, 222
 
-chessboard_width = 216
-case_width = chessboard_width // 8
+chessboard_width = 216 # the biggest n <= min(screen_width, screen_height) such 8 | n
+case_width = 27 # chessboard_with // 8
 
-horizontal_border = (screen_width - chessboard_width) // 2
-vertical_border = (screen_height - chessboard_width) // 2
+horizontal_border = 52 # (screen_width - chessboard_width) // 2
+vertical_border = 3 # (screen_height - chessboard_width) // 2
 
 # colors
 colors = {
-    'brown':  (240, 217, 181),
-    'beige':  (181, 136, 99),
-    'black':  (0, 0, 0),
-    'lblack': (60, 60, 60),
-    'white':  (255, 255, 255),
-    'lwhite': (243, 243, 243),
-    'green':  (100, 109, 64),
-    'grey':   (130,130,130),
-    'pwhite': (255,255,255)
+    'bcase':  (240, 217, 181), # black cases (brown here)
+    'wcase':  (181, 136, 99), # white cases (beige here)
+    'black':  (0, 0, 0), # needed sometimes
+    'pblack': (60, 60, 60),     # black pieces
+    'pwhite':  (255, 255, 255), # white pieces
+    'prim':  (100, 109, 64), # general select/cursor ~ primary
+    'seco':   (130,130,130), # promotion interface cursor ~ secondary
+    'bg': (255,255,255) # general background color
 }
 
-whites = ['K', 'N', 'B', 'P', 'Q', 'R']
+# WARNING: this cannot exceed a certain amount of pixels as there will be an overlapping with the piece resource
+cursor_width = 2
 
 # resources
-resources = {
-    'k': [['', '', '', '', '', 'b', 'b', '', '', '', '', ''], ['', '', '', '', 'b', 'c', 'c', 'b', '', '', '', ''],
-          ['', '', '', '', 'b', 'c', 'c', 'b', '', '', '', ''],
-          ['', 'b', 'b', 'b', '', 'b', 'b', '', 'b', 'b', 'b', ''],
-          ['b', 'c', 'c', 'c', 'b', '', '', 'b', 'c', 'c', 'c', 'b'],
-          ['b', 'c', '', 'b', 'c', 'b', 'b', 'c', 'b', '', 'c', 'b'],
-          ['b', 'c', '', '', 'b', 'c', 'c', 'b', '', '', 'c', 'b'],
-          ['b', 'c', 'b', '', '', 'c', 'c', '', '', 'b', 'c', 'b'],
-          ['', 'b', 'c', 'b', 'b', 'c', 'c', 'b', 'b', 'c', 'b', ''],
-          ['', 'b', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'b', ''],
-          ['', '', 'b', 'c', 'c', 'c', 'c', 'c', 'c', 'b', '', ''],
-          ['', '', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', '', ''],
-          ['', 'b', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'b', ''],
-          ['', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', '']],
-    'q': [['', '', '', '', '', '', 'b', 'b', '', '', '', '', '', ''],
-          ['', '', '', '', '', 'b', 'c', 'c', 'b', '', '', '', '', ''],
-          ['', '', '', '', '', 'b', 'c', 'c', 'b', '', '', '', '', ''],
-          ['', '', '', '', '', '', 'b', 'b', '', '', '', '', '', ''],
-          ['b', '', '', '', '', '', '', '', '', '', '', '', '', 'b'],
-          ['', 'b', 'b', '', '', '', 'b', 'b', '', '', '', 'b', 'b', ''],
-          ['', 'b', 'c', 'b', '', 'b', 'c', 'c', 'b', '', 'b', 'c', 'b', ''],
-          ['', 'b', 'c', 'c', 'b', 'c', 'c', 'c', 'c', 'b', 'c', 'c', 'b', ''],
-          ['', '', 'b', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'b', '', ''],
-          ['', '', 'b', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'b', '', ''],
-          ['', '', '', 'b', 'c', 'c', 'c', 'c', 'c', 'c', 'b', '', '', ''],
-          ['', '', '', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', '', '', ''],
-          ['', '', 'b', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'b', '', ''],
-          ['', '', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', '', '']],
-    'b': [['', '', '', '', 'b', 'b', '', '', '', ''], ['', '', '', 'b', 'c', 'c', 'b', '', '', ''],
-          ['', '', '', 'b', 'c', 'c', 'b', '', '', ''], ['', '', '', '', 'b', 'b', '', '', '', ''],
-          ['', '', '', 'b', 'c', 'c', 'b', '', '', ''], ['', '', 'b', 'c', 'c', 'c', 'c', 'b', '', ''],
-          ['', 'b', 'c', 'c', 'c', 'c', 'b', 'c', 'b', ''], ['', 'b', 'c', 'c', 'c', 'b', 'c', 'c', 'b', ''],
-          ['', 'b', 'c', 'c', 'c', 'c', 'c', 'c', 'b', ''], ['', 'b', 'c', 'c', 'c', 'c', 'c', 'c', 'b', ''],
-          ['', '', 'b', 'c', 'c', 'c', 'c', 'b', '', ''], ['', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', ''],
-          ['b', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'b'], ['b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b']],
-    'n': [['', '', 'b', 'b', 'b', 'b', '', '', '', '', '', ''], ['', '', 'b', 'c', 'c', 'c', 'b', 'b', 'b', '', '', ''],
-          ['', '', '', 'b', 'c', 'c', 'c', 'c', 'c', 'b', '', ''],
-          ['', '', 'b', 'c', 'b', 'c', 'c', 'c', 'c', 'c', 'b', ''],
-          ['', 'b', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'b', ''],
-          ['b', 'c', 'c', 'c', 'c', 'c', 'b', 'c', 'c', 'c', 'b', ''],
-          ['b', 'c', 'c', 'b', 'c', 'b', 'c', 'c', 'c', 'c', 'b', ''],
-          ['', 'b', 'b', '', '', 'b', 'c', 'c', 'c', 'c', 'b', ''],
-          ['', '', '', '', 'b', 'c', 'c', 'c', 'c', 'c', 'b', ''],
-          ['', '', '', 'b', 'c', 'c', 'c', 'c', 'c', 'b', '', ''],
-          ['', '', 'b', 'c', 'c', 'c', 'c', 'c', 'c', 'b', '', ''],
-          ['', '', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', '', ''],
-          ['', 'b', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'b', ''],
-          ['', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', '']],
-    'r': [['', 'b', 'b', 'b', '', 'b', 'b', 'b', 'b', 'b', 'b', ''],
-          ['', 'b', 'c', 'b', '', 'b', 'c', 'c', 'c', 'c', 'b', ''],
-          ['', 'b', 'c', 'b', 'b', 'b', 'c', 'c', 'c', 'c', 'b', ''],
-          ['', 'b', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'b', ''],
-          ['', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', ''],
-          ['', '', 'b', 'c', 'c', 'c', 'c', 'c', 'c', 'b', '', ''],
-          ['', '', '', 'b', 'b', 'b', 'b', 'b', 'b', '', '', ''],
-          ['', '', '', 'b', 'c', 'c', 'c', 'c', 'b', '', '', ''],
-          ['', '', '', 'b', 'c', 'c', 'c', 'c', 'b', '', '', ''],
-          ['', '', '', 'b', 'c', 'c', 'c', 'c', 'b', '', '', ''],
-          ['', '', 'b', 'c', 'c', 'c', 'c', 'c', 'c', 'b', '', ''],
-          ['', 'b', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'b', ''],
-          ['b', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'b'],
-          ['b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b']],
-    'p': [['', '', 'b', 'b', 'b', 'b', '', ''], ['', 'b', 'c', 'c', 'c', 'c', 'b', ''],
-          ['', 'b', 'c', 'c', 'c', 'c', 'b', ''], ['', 'b', 'c', 'c', 'c', 'c', 'b', ''],
-          ['', '', 'b', 'c', 'c', 'b', '', ''], ['', 'b', 'c', 'c', 'c', 'c', 'b', ''],
-          ['', 'b', 'c', 'c', 'c', 'c', 'b', ''], ['', '', 'b', 'c', 'c', 'b', '', ''],
-          ['', 'b', 'c', 'c', 'c', 'c', 'b', ''], ['b', 'c', 'c', 'c', 'c', 'c', 'c', 'b'],
-          ['b', 'c', 'c', 'c', 'c', 'c', 'c', 'b'], ['b', 'b', 'b', 'b', 'b', 'b', 'b', 'b']]
+res = {
+    "k":(
+        '     bb     ',
+        '    bccb    ',
+        '    bccb    ',
+        ' bbb bb bbb ',
+        'bcccb  bcccb',
+        'bc bcbbcb cb',
+        'bc  bccb  cb',
+        'bcb  cc  bcb',
+        ' bcbbccbbcb ',
+        ' bccccccccb ',
+        '  bccccccb  ',
+        '  bbbbbbbb  ',
+        ' bccccccccb ',
+        ' bbbbbbbbbb '
+        ),
+    "q":(
+        '      bb      ',
+        '     bccb     ',
+        '     bccb     ',
+        '      bb      ',
+        'b            b',
+        ' bb   bb   bb ',
+        ' bcb bccb bcb ',
+        ' bccbccccbccb ',
+        '  bccccccccb  ',
+        '  bccccccccb  ',
+        '   bccccccb   ',
+        '   bbbbbbbb   ',
+        '  bccccccccb  ',
+        '  bbbbbbbbbb  '
+        ),
+    "b":(
+        '    bb    ',
+        '   bccb   ',
+        '   bccb   ',
+        '    bb    ',
+        '   bccb   ',
+        '  bccccb  ',
+        ' bccccbcb ',
+        ' bcccbccb ',
+        ' bccccccb ',
+        ' bccccccb ',
+        '  bccccb  ',
+        ' bbbbbbbb ',
+        'bccccccccb',
+        'bbbbbbbbbb'
+        ),
+    "n":(
+        '  bbbb     ',
+        '  bcccbbb  ',
+        '   bcccccb ',
+        '  bcbcccccb',
+        ' bccccccccb',
+        'bcccccbcccb',
+        'bccbcbccccb',
+        ' bb  bccccb',
+        '    bcccccb',
+        '   bcccccb ',
+        '  bccccccb ',
+        '  bbbbbbbb ',
+        ' bccccccccb',
+        ' bbbbbbbbbb'
+        ),
+    "r":(
+        ' bbb bbbbbb ',
+        ' bcb bccccb ',
+        ' bcbbbccccb ',
+        ' bccccccccb ',
+        ' bbbbbbbbbb ',
+        '  bccccccb  ',
+        '   bbbbbb   ',
+        '   bccccb   ',
+        '   bccccb   ',
+        '   bccccb   ',
+        '  bccccccb  ',
+        ' bccccccccb ',
+        'bccccccccccb',
+        'bbbbbbbbbbbb'
+        ),
+    "p":(
+        '  bbbb  ',
+        ' bccccb ',
+        ' bccccb ',
+        ' bccccb ',
+        '  bccb  ',
+        ' bccccb ',
+        ' bccccb ',
+        '  bccb  ',
+        ' bccccb ',
+        'bccccccb',
+        'bccccccb',
+        'bbbbbbbb'
+        )
 }
 
 # position
 board = [
-    ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'],
-    ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
-    ['', '', '', '', '', '', '', ''],
-    ['', '', '', '', '', '', '', ''],
-    ['', '', '', '', '', '', '', ''],
-    ['', '', '', '', '', '', '', ''],
-    ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
-    ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R']
-]
+        "rnbqkbnr",
+        "pppppppp",
+        "        ",
+        "        ",
+        "        ",
+        "        ",
+        "PPPPPPPP",
+        "RNBQKBNR"
+        ]
+
+board = [list(row) for row in board]
+
+# as there's rotation, gotta know from which side you are
 view = 'white'
 kings = {
     'white': (4, 7),
     'black': (4, 0)
 }
 
+# no .isupper() so we use this to know if a piece is white or black
+whites = ['K', 'N', 'B', 'P', 'Q', 'R']
 
-# graphics
+
+# graphical funcs
 def fill_case(x, y, color):
     if view == 'black':
         x = 7 - x
@@ -124,81 +158,85 @@ def fill_case(x, y, color):
     fill_rect(horizontal_border + case_width * x, vertical_border + case_width * y, case_width, case_width,
               colors[color])
 
-
 def draw_piece(x, y, piece):
     if view == 'black':
         x = 7 - x
         y = 7 - y
-    piece_resource = resources[piece.lower()]
-    border_x = (case_width - len(piece_resource[0])) // 2
-    border_y = (case_width - len(piece_resource)) // 2
-    _y = 1
-    color = colors['l' + get_piece_color(piece)]
-    for row in piece_resource:
-        _x = 1
-        for element in row:
-            if element:
-                fill_rect(horizontal_border + case_width * x + border_x + _x,
-                          vertical_border + case_width * y + border_y + _y, 1, 1,
-                          color if element == 'c' else colors['black'])
-            _x += 1
-        _y += 1
+    x_s = x * case_width + horizontal_border + 1 + (case_width - len(res[piece.lower()][0])) // 2
+    y = y * case_width + vertical_border + 1 + (case_width - len(res[piece.lower()])) // 2
 
+    c = colors['p'+get_piece_color(piece)]
 
-def get_piece_color(piece):
+    for row in res[piece.lower()]:
+        x = x_s
+        for pixel in row:
+            if pixel == 'c':
+                fill_rect(x,y,1,1, c)
+            elif pixel == 'b':
+                fill_rect(x,y,1,1, colors['black'])
+            x += 1
+        y += 1
+
+def get_piece_color(piece): # piece must not be None
     return 'white' if piece in whites else 'black'
 
+def get_case_piece_color(case):
+    return get_piece_color(board[case[1]][case[0]])
 
 def get_case_color(case):
-    return 'beige' if (case[0] + case[1]) % 2 == 0 else 'brown'
+    return 'wcase' if (case[0] + case[1]) % 2 == 0 else 'bcase'
 
-
-border_width = 2
-
-
-def draw_border(case, color):
+def draw_border(case, c):
     x = case[0]
     y = case[1]
     if view == 'black':
         x = 7 - x
         y = 7 - y
-    fill_rect(horizontal_border + case_width * x, vertical_border + case_width * y, border_width, case_width,
-              colors[color])  # left
-    fill_rect(horizontal_border + case_width * x, vertical_border + case_width * y, case_width, border_width,
-              colors[color])  # top
-    fill_rect(horizontal_border + case_width * (x + 1) - border_width, vertical_border + case_width * y, border_width,
-              case_width, colors[color])  # right
-    fill_rect(horizontal_border + case_width * x, vertical_border + case_width * (y + 1) - border_width, case_width,
-              border_width, colors[color])  # bottom
-
+    fill_rect(horizontal_border + case_width * x, vertical_border + case_width * y, cursor_width, case_width,
+              colors[c])  # left
+    fill_rect(horizontal_border + case_width * x, vertical_border + case_width * y, case_width, cursor_width,
+              colors[c])  # top
+    fill_rect(horizontal_border + case_width * (x + 1) - cursor_width, vertical_border + case_width * y, cursor_width,
+              case_width, colors[c])  # right
+    fill_rect(horizontal_border + case_width * x, vertical_border + case_width * (y + 1) - cursor_width, case_width,
+              cursor_width, colors[c])  # bottom
 
 def fill_case_background(case, color):
     x = case[0]
     y = case[1]
     fill_case(x, y, color)
-    if board[y][x]:
+    if someone_there( (x,y) ):
         draw_piece(x, y, board[y][x])
 
+# MOVES
 
-# moves
+# very useful
+def apply_pattern(case, pattern):
+    return case[0] + pattern[0], case[1] + pattern[1]
+
+def valid_cords(cords):
+    return 0 <= cords[0] <= 7 and 0 <= cords[1] <= 7
+
+# case must have valid cords
+def someone_there(cords):
+    return board[cords[1]][cords[0]] != ' '
+
 def get_line(start_case, direction, end_case=None):
-    case = start_case[0] + direction[0], start_case[1] + direction[1]
+    case = apply_pattern(start_case, direction)
     line = []
-    while -1 < case[0] < 8 and -1 < case[1] < 8 and not board[case[1]][case[0]]:
+    while valid_cords(case) and not someone_there(case):
         line.append(case[:])
         if end_case and case == end_case:
             break
-        case = case[0] + direction[0], case[1] + direction[1]
+        case = apply_pattern(case, direction)
     return line
 
-
+# case must have valid cords
 def enemy_there(case):
-    return True if board[case[1]][case[0]] and get_piece_color(board[case[1]][case[0]]) != view else False
-
+    return True if someone_there(case) and get_case_piece_color(case) != view else False
 
 def friend_there(case):
-    return True if board[case[1]][case[0]] and get_piece_color(board[case[1]][case[0]]) == view else False
-
+    return True if someone_there(case) and get_case_piece_color(case) == view else False
 
 knight_patterns = [(-2, 1), (-1, 2), (2, 1), (1, 2), (-2, -1), (-1, -2), (2, -1), (1, -2)]
 king_patterns = [(1, 1), (0, 1), (-1, -1), (1, 0), (-1, 1), (-1, 0), (1, -1), (0, -1)]
@@ -207,39 +245,33 @@ pawn_attacking_patterns = {'white': [(-1, -1), (1, -1)], 'black': [(-1, 1), (1, 
 straight_directions = [(1, 0), (-1, 0), (0, -1), (0, 1)]
 diagonal_directions = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
 
-
 def is_attacked(case):
-    color = get_piece_color(board[case[1]][case[0]])
     for direction in straight_directions:
         line = get_line(case, direction)
-        x = (line[-1][0] if len(line) else case[0]) + direction[0]
-        y = (line[-1][1] if len(line) else case[1]) + direction[1]
-        if -1 < x < 8 and -1 < y < 8 and board[y][x] and get_piece_color(board[y][x]) != color and board[y][x].lower() in ['r', 'q']:
+        x, y = apply_pattern(line[-1] if len(line) else case, direction)
+        if valid_cords( (x,y) ) and enemy_there( (x,y) ) and board[y][x].lower() in ['r', 'q']:
             return True
 
     for direction in diagonal_directions:
         line = get_line(case, direction)
-        x = (line[-1][0] if len(line) else case[0]) + direction[0]
-        y = (line[-1][1] if len(line) else case[1]) + direction[1]
-        if -1 < x < 8 and -1 < y < 8 and board[y][x] and get_piece_color(board[y][x]) != color and (board[y][x].lower() in ['b', 'q']):
+        x, y = apply_pattern(line[-1] if len(line) else case, direction)
+        if valid_cords( (x,y) ) and enemy_there( (x,y) ) and board[y][x].lower() in ['b', 'q']:
             return True
 
     for pattern in knight_patterns:
-        x = pattern[0] + case[0]
-        y = pattern[1] + case[1]
-        if -1 < x < 8 and -1 < y < 8 and board[y][x] and get_piece_color(board[y][x]) != color and board[y][x].lower() == 'n':
+        x, y = apply_pattern(case, pattern)
+        if valid_cords( (x,y) ) and enemy_there( (x,y) ) and board[y][x].lower() == 'n':
             return True
 
+    # make sure one's king cannot touch the oppponent's one
     for pattern in king_patterns:
-        x = pattern[0] + case[0]
-        y = pattern[1] + case[1]
-        if -1 < x < 8 and -1 < y < 8 and board[y][x] and get_piece_color(board[y][x]) != color and board[y][x].lower() == 'k':
+        x,y = apply_pattern(case, pattern)
+        if valid_cords( (x,y) ) and enemy_there( (x,y) ) and board[y][x].lower() == 'k':
             return True
 
-    for pattern in pawn_attacking_patterns[color]:
-        x = pattern[0] + case[0]
-        y = pattern[1] + case[1]
-        if -1 < x < 8 and -1 < y < 8 and board[y][x] and get_piece_color(board[y][x]) != color and board[y][x].lower() == 'p':
+    for pattern in pawn_attacking_patterns[get_case_piece_color(case)]:
+        x,y = apply_pattern(case, pattern)
+        if valid_cords( (x,y) ) and enemy_there( (x,y) ) and board[y][x].lower() == 'p':
             return True
 
     return False
@@ -247,9 +279,6 @@ def is_attacked(case):
 
 en_passant = {'white': [], 'black': []}
 castle = {'white': [1, 1], 'black': [1, 1]}
-
-def checkmate():
-    ...
 
 def handle_move(start_case, end_case):
     global en_passant, castle, board, kings
@@ -277,7 +306,7 @@ def handle_move(start_case, end_case):
         # check if move in common moves
         if moves and tuple(end_case) in moves:
             board[end_case[1]][end_case[0]] = 'P' if view == 'white' else 'p'
-            board[start_case[1]][start_case[0]] = ''
+            board[start_case[1]][start_case[0]] = ' '
             if end_case[1] == (0 if view == 'white' else 7):
                 board[end_case[1]][end_case[0]] = handle_promotion()
         else:
@@ -293,8 +322,8 @@ def handle_move(start_case, end_case):
             if en_passant_moves and tuple(end_case) in en_passant_moves:
                 if start_case[1] == (3 if view == 'white' else 4):
                     board[end_case[1]][end_case[0]] = 'P' if view == 'white' else 'p'
-                    board[start_case[1]][end_case[0]] = ''
-                    board[start_case[1]][start_case[0]] = ''
+                    board[start_case[1]][end_case[0]] = ' '
+                    board[start_case[1]][start_case[0]] = ' '
             else:
                 return False
         # update in consequence the general variables
@@ -312,15 +341,15 @@ def handle_move(start_case, end_case):
         if board[end_case[1]][end_case[0]] and friend_there((end_case[0], end_case[1])): return False
         else:
             board[end_case[1]][end_case[0]] = 'N' if view == 'white' else 'n'
-            board[start_case[1]][start_case[0]] = ''
+            board[start_case[1]][start_case[0]] = ' '
 
     # bishop
     elif piece.lower() == 'b':
         moves = []
         for direction in diagonal_directions:
             line = get_line(start_case, direction)
-            next_case = (line[-1][0] + direction[0], line[-1][1] + direction[1]) if len(line) else (start_case[0] + direction[0], start_case[1] + direction[1])
-            if -1 < next_case[0] < 8 and -1 < next_case[1] < 8 and enemy_there(next_case):
+            next_case = apply_pattern(line[-1] if len(line) else start_case, direction)
+            if valid_cords(next_case) and enemy_there(next_case):
                 line.append(next_case)
             moves.extend(line)
 
@@ -328,15 +357,15 @@ def handle_move(start_case, end_case):
             return False
         else:
             board[end_case[1]][end_case[0]] = 'B' if view == 'white' else 'b'
-            board[start_case[1]][start_case[0]] = ''
+            board[start_case[1]][start_case[0]] = ' '
 
     # rook
     elif piece.lower() == 'r':
         moves = []
         for direction in straight_directions:
             line = get_line(start_case, direction)
-            next_case = (line[-1][0] + direction[0], line[-1][1] + direction[1]) if len(line) else (start_case[0] + direction[0], start_case[1] + direction[1])
-            if -1 < next_case[0] < 8 and -1 < next_case[1] < 8 and enemy_there(next_case):
+            next_case = apply_pattern(line[-1] if len(line) else start_case, direction)
+            if valid_cords(next_case) and enemy_there(next_case):
                 line.append(next_case)
             moves.extend(line)
 
@@ -344,7 +373,7 @@ def handle_move(start_case, end_case):
             return False
 
         board[end_case[1]][end_case[0]] = 'R' if view == 'white' else 'r'
-        board[start_case[1]][start_case[0]] = ''
+        board[start_case[1]][start_case[0]] = ' '
 
         # castle handling
         if castle[view][0] and start_case == [0, castle_row]:
@@ -357,8 +386,8 @@ def handle_move(start_case, end_case):
         moves = []
         for direction in diagonal_directions:
             line = get_line(start_case, direction)
-            next_case = (line[-1][0] + direction[0], line[-1][1] + direction[1]) if len(line) else (start_case[0] + direction[0], start_case[1] + direction[1])
-            if -1 < next_case[0] < 8 and -1 < next_case[1] < 8 and enemy_there(next_case):
+            next_case = apply_pattern(line[-1] if len(line) else start_case, direction)
+            if valid_cords(next_case) and enemy_there(next_case):
                 line.append(next_case)
             moves.extend(line)
         for direction in straight_directions:
@@ -371,44 +400,47 @@ def handle_move(start_case, end_case):
             return False
         else:
             board[end_case[1]][end_case[0]] = 'Q' if view == 'white' else 'q'
-            board[start_case[1]][start_case[0]] = ''
+            board[start_case[1]][start_case[0]] = ' '
 
     # king
     elif piece.lower() == 'k':
         direction = end_case[0] - start_case[0], end_case[1] - start_case[1]
         if direction not in king_patterns:
-            if castle[view] != [0, 0]:
+            if castle[view] != [0,0]:
                 if castle[view][1]:
                     rook = board[castle_row][7]
                     # satisfying different conditions: end_case, rook present on his case(because we don't check if it's eaten), nothing between them
-                    if end_case == [6, castle_row] and rook.lower() == 'r' and get_piece_color(rook) == view and not board[castle_row][5] and not board[castle_row][6]:
+                    if end_case == [6, castle_row] and rook.lower() == 'r' and get_piece_color(rook) == view and not someone_there((5,castle_row)) and not someone_there((6,castle_row)):
                         board[castle_row][5] = rook
                         board[castle_row][6] = board[start_case[1]][start_case[0]]
-                        board[castle_row][4] = ''
-                        board[castle_row][7] = ''
+                        board[castle_row][4] = ' '
+                        board[castle_row][7] = ' '
 
                         kings[view] = end_case
 
                         # checking if rook is attacked
                         if is_attacked((5, castle_row)) or is_attacked(end_case):
-                            board = [[e for e in row] for row in saved_board]
-                            kings = saved_kings.copy()
+                            board = saved_board[:]
+                            kings = saved_kings[:]
                             return False
                 if castle[view][0]:
                     rook = board[castle_row][0]
                     # satisfying different conditions: ...
-                    if end_case == [2, castle_row] and rook.lower() == 'r' and get_piece_color(rook) == view and not board[castle_row][1] and not board[castle_row][2] and not board[castle_row][3]:
+                    if end_case[0] == 2 and end_case[1] == castle_row and rook.lower() == 'r' and get_piece_color(rook) == view and not someone_there((1,castle_row)) and not someone_there((2,castle_row)) and not someone_there((3,castle_row)):
+                        board[castle_row][4] = ' '
                         board[castle_row][3] = rook
-                        board[castle_row][2] = board[start_case[1]][start_case[0]]
+                        board[castle_row][2] = 'K' if view == 'white' else 'k'
+                        board[castle_row][0] = ' '
                         if is_attacked((3,castle_row)):
-                            board = [[e for e in row] for row in saved_board]
+                            board = saved_board[:]
                             return False
-            else: return False
+            else:
+                return False
         elif board[end_case[1]][end_case[0]] and friend_there((end_case[0], end_case[1])):
             return False
         else:
             board[end_case[1]][end_case[0]] = 'K' if view == 'white' else 'k'
-            board[start_case[1]][start_case[0]] = ''
+            board[start_case[1]][start_case[0]] = 'K'
             kings[view] = end_case
         castle[view] = [0,0]
 
@@ -431,28 +463,24 @@ def handle_promotion():
         draw_piece(8,i,pieces[i])
     while True:
         if keydown(KEY_DOWN) and pcursor != 3:
-            draw_border((y,pcursor), 'pwhite')
+            draw_border((y,pcursor), 'bg')
             pcursor += 1 if view == 'white' else -1
             draw_border((y,pcursor), 'grey')
         if keydown(KEY_UP) and pcursor != 0:
-            draw_border((y,pcursor), 'pwhite')
+            draw_border((y,pcursor), 'bg')
             pcursor -= 1 if view == 'white' else -1
             draw_border((y,pcursor), 'grey')
         if keydown(KEY_OK):
             for i in range(4):
-                fill_case(y,i,'pwhite')
+                fill_case(y,i,'bg')
             return pieces[pcursor]
         sleep(0.1)
-
-
-    
-
 
 def draw_board():
     for y in range(8):
         for x in range(8):
             fill_case(x, y, get_case_color([x, y]))
-            if board[y][x]:
+            if someone_there( (x,y) ):
                 draw_piece(x, y, board[y][x])
 
 
@@ -467,7 +495,7 @@ selected = False
 # game loop
 while True:
     draw_board()
-    draw_border(cursor[view], 'green')
+    draw_border(cursor[view], 'prim')
     current_view = view
     while current_view == view:
         if keydown(KEY_LEFT) and cursor[view][0] != (0 if view == 'white' else 7):
@@ -475,39 +503,36 @@ while True:
                 draw_border(cursor[view], get_case_color(cursor[view]))
             cursor[view][0] += -1 if view == 'white' else 1
             if cursor[view] != select:
-                draw_border(cursor[view], 'green')
+                draw_border(cursor[view], 'prim')
         if keydown(KEY_RIGHT) and cursor[view][0] != (7 if view == 'white' else 0):
             if cursor[view] != select:
                 draw_border(cursor[view], get_case_color(cursor[view]))
             cursor[view][0] += 1 if view == 'white' else -1
             if cursor[view] != select:
-                draw_border(cursor[view], 'green')
+                draw_border(cursor[view], 'prim')
         if keydown(KEY_UP) and cursor[view][1] != (0 if view == 'white' else 7):
             if cursor[view] != select:
                 draw_border(cursor[view], get_case_color(cursor[view]))
             cursor[view][1] += -1 if view == 'white' else 1
             if cursor[view] != select:
-                draw_border(cursor[view], 'green')
+                draw_border(cursor[view], 'prim')
         if keydown(KEY_DOWN) and cursor[view][1] != (7 if view == 'white' else 0):
             if cursor[view] != select:
                 draw_border(cursor[view], get_case_color(cursor[view]))
             cursor[view][1] += 1 if view == 'white' else -1
             if cursor[view] != select:
-                draw_border(cursor[view], 'green')
+                draw_border(cursor[view], 'prim')
         if keydown(KEY_OK):
             if selected:
                 if handle_move(select, cursor[view]):
                     view = 'black' if view == 'white' else 'white'
                 else:
                     fill_case_background(select, get_case_color(select))
-                    draw_border(cursor[view], 'green')
+                    draw_border(cursor[view], 'prim')
                 selected = False
                 select = (None, None)
             elif board[cursor[view][1]][cursor[view][0]] and get_piece_color(board[cursor[view][1]][cursor[view][0]]) == view:
                 select = cursor[view][:]
                 selected = True
-                fill_case_background(select, 'green')
-
-
+                fill_case_background(select, 'prim')
         sleep(0.1)
-
