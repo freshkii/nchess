@@ -1,8 +1,6 @@
 # NChess
 An « intelligent » numworks chessgame.
 
-WARNING: this can contain bugs
-
 ## Features
 - check detection (checkmate is not detected as in my opinion it would need too much computation each move)
 - legal moves only
