@@ -221,6 +221,9 @@ def valid_cords(cords):
 def someone_there(cords):
     return board[cords[1]][cords[0]] != ' '
 
+def match(case1, case2):
+    return case1[0] == case2[0] and case1[1] == case2[1]
+
 def get_line(start_case, direction, end_case=None):
     case = apply_pattern(start_case, direction)
     line = []
@@ -288,9 +291,9 @@ def handle_move(start_case, end_case):
     castle_row = 0 if view == 'black' else 7
 
     saved_board = [[e for e in row] for row in board]
-    saved_en_passant = {'white': en_passant['white'][:], 'black': en_passant['black'][:]}
-    saved_castle = {'white': castle['white'][:], 'black': castle['black'][:]}
-    saved_kings = {'white': kings['white'][:], 'black': kings['black'][:]}
+    saved_en_passant = en_passant.copy()
+    saved_castle = castle.copy()
+    saved_kings = kings.copy()
 
     # pawn
     if piece.lower() == 'p':
@@ -325,6 +328,7 @@ def handle_move(start_case, end_case):
                     board[start_case[1]][end_case[0]] = ' '
                     board[start_case[1]][start_case[0]] = ' '
             else:
+                print("p")
                 return False
         # update in consequence the general variables
         if end_case[1] == (4 if view == 'white' else 3):
@@ -335,10 +339,14 @@ def handle_move(start_case, end_case):
             en_passant[view].remove(start_case[0])
 
     # knight
-    elif piece.lower() == 'n'
+    elif piece.lower() == 'n':
         rapport = (end_case[0] - start_case[0]) * (end_case[1] - start_case[1])
-        if rapport != -2 and rapport != 2: return False
-        if board[end_case[1]][end_case[0]] and friend_there((end_case[0], end_case[1])): return False
+        if rapport != -2 and rapport != 2:
+            print("n")
+            return False
+        if friend_there(end_case):
+            print("n")
+            return False
         else:
             board[end_case[1]][end_case[0]] = 'N' if view == 'white' else 'n'
             board[start_case[1]][start_case[0]] = ' '
@@ -354,6 +362,7 @@ def handle_move(start_case, end_case):
             moves.extend(line)
 
         if tuple(end_case) not in moves:
+            print("b")
             return False
         else:
             board[end_case[1]][end_case[0]] = 'B' if view == 'white' else 'b'
@@ -370,6 +379,7 @@ def handle_move(start_case, end_case):
             moves.extend(line)
 
         if tuple(end_case) not in moves:
+            print("r")
             return False
 
         board[end_case[1]][end_case[0]] = 'R' if view == 'white' else 'r'
@@ -392,11 +402,12 @@ def handle_move(start_case, end_case):
             moves.extend(line)
         for direction in straight_directions:
             line = get_line(start_case, direction)
-            next_case = (line[-1][0] + direction[0], line[-1][1] + direction[1]) if len(line) else (start_case[0] + direction[0], start_case[1] + direction[1])
-            if -1 < next_case[0] < 8 and -1 < next_case[1] < 8 and enemy_there(next_case):
+            next_case = apply_pattern(line[-1] if len(line) else start_case, direction)
+            if valid_cords(next_case) and enemy_there(next_case):
                 line.append(next_case)
             moves.extend(line)
         if tuple(end_case) not in moves:
+            print("q")
             return False
         else:
             board[end_case[1]][end_case[0]] = 'Q' if view == 'white' else 'q'
@@ -406,53 +417,70 @@ def handle_move(start_case, end_case):
     elif piece.lower() == 'k':
         direction = end_case[0] - start_case[0], end_case[1] - start_case[1]
         if direction not in king_patterns:
-            if castle[view] != [0,0]:
+            if (castle[view][1] or castle[view][0]) and ( match(direction, (2,0)) or match(direction, (-2,0)) ):
+                done_tmp = False
                 if castle[view][1]:
                     rook = board[castle_row][7]
                     # satisfying different conditions: end_case, rook present on his case(because we don't check if it's eaten), nothing between them
-                    if end_case == [6, castle_row] and rook.lower() == 'r' and get_piece_color(rook) == view and not someone_there((5,castle_row)) and not someone_there((6,castle_row)):
+                    if match(end_case, (6,castle_row)) and rook.lower() == 'r' and get_piece_color(rook) == view and not someone_there((5,castle_row)) and not someone_there((6,castle_row)):
                         board[castle_row][5] = rook
                         board[castle_row][6] = board[start_case[1]][start_case[0]]
                         board[castle_row][4] = ' '
                         board[castle_row][7] = ' '
 
-                        kings[view] = end_case
+                        kings[view] = tuple(end_case)
 
                         # checking if rook is attacked
                         if is_attacked((5, castle_row)) or is_attacked(end_case):
                             board = saved_board[:]
                             kings = saved_kings[:]
+                            print("k")
                             return False
-                if castle[view][0]:
+                        done_tmp = True
+
+                if castle[view][0] and not done_tmp:
                     rook = board[castle_row][0]
                     # satisfying different conditions: ...
-                    if end_case[0] == 2 and end_case[1] == castle_row and rook.lower() == 'r' and get_piece_color(rook) == view and not someone_there((1,castle_row)) and not someone_there((2,castle_row)) and not someone_there((3,castle_row)):
+                    if match(end_case, (2, castle_row)) and rook.lower() == 'r' and get_piece_color(rook) == view and not someone_there((1, castle_row)) and not someone_there((2, castle_row)) and not someone_there((3, castle_row)):
                         board[castle_row][4] = ' '
                         board[castle_row][3] = rook
                         board[castle_row][2] = 'K' if view == 'white' else 'k'
                         board[castle_row][0] = ' '
-                        if is_attacked((3,castle_row)):
-                            board = saved_board[:]
-                            return False
-            else:
-                return False
-        elif board[end_case[1]][end_case[0]] and friend_there((end_case[0], end_case[1])):
-            return False
-        else:
-            board[end_case[1]][end_case[0]] = 'K' if view == 'white' else 'k'
-            board[start_case[1]][start_case[0]] = 'K'
-            kings[view] = end_case
-        castle[view] = [0,0]
 
+                        kings[view] = tuple(end_case)
+
+                        if is_attacked((3, castle_row)):
+                            board = saved_board[:]
+                            kings = saved_kings[:]
+                            print("k")
+                            return False
+                    else:
+                        print("k")
+                        return False
+            else:
+                print("k")
+                return False
+
+        elif friend_there(end_case):
+            print("k")
+            return False
+        else:  # consequently, direction is in king patterns
+            board[end_case[1]][end_case[0]] = 'K' if view == 'white' else 'k'
+            board[start_case[1]][start_case[0]] = ' '
+            kings[view] = tuple(end_case)
+        castle[view] = [0, 0]
+
+    print(kings)
     # check if king in check
     if is_attacked(kings[view]):
         board = [[e for e in row] for row in saved_board]
         en_passant = saved_en_passant.copy()
         castle = saved_castle.copy()
         kings = saved_kings.copy()
+        print(kings)
+        print("iahm")
         return False
 
-    # other stuffs
     return True
 
 def handle_promotion():
@@ -530,8 +558,8 @@ while True:
                     fill_case_background(select, get_case_color(select))
                     draw_border(cursor[view], 'prim')
                 selected = False
-                select = (None, None)
-            elif board[cursor[view][1]][cursor[view][0]] and get_piece_color(board[cursor[view][1]][cursor[view][0]]) == view:
+                select = [None, None]
+            elif someone_there(cursor[view]) and get_case_piece_color(cursor[view]) == view:
                 select = cursor[view][:]
                 selected = True
                 fill_case_background(select, 'prim')

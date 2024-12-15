@@ -338,7 +338,7 @@ def hmv(sc, ec):
             b[csr][6] = b[sc[1]][sc[0]]
             b[csr][4] = ' '
             b[csr][7] = ' '
-            kgs[v] = ec
+            kgs[v] = tuple(ec)
             if ia((5, csr)) or ia(ec):
               b = svb[:]
               kgs = svkgs[:]
@@ -360,7 +360,7 @@ def hmv(sc, ec):
     else:
       b[ec[1]][ec[0]] = 'K' if v == 'white' else 'k'
       b[sc[1]][sc[0]] = 'K'
-      kgs[v] = ec
+      kgs[v] = tuple(ec)
     cstl[v] = [0,0]
   if ia(kgs[v]):
     b = [[e for e in row] for row in svb]
