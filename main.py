@@ -328,7 +328,6 @@ def handle_move(start_case, end_case):
                     board[start_case[1]][end_case[0]] = ' '
                     board[start_case[1]][start_case[0]] = ' '
             else:
-                print("p")
                 return False
         # update in consequence the general variables
         if end_case[1] == (4 if view == 'white' else 3):
@@ -342,10 +341,8 @@ def handle_move(start_case, end_case):
     elif piece.lower() == 'n':
         rapport = (end_case[0] - start_case[0]) * (end_case[1] - start_case[1])
         if rapport != -2 and rapport != 2:
-            print("n")
             return False
         if friend_there(end_case):
-            print("n")
             return False
         else:
             board[end_case[1]][end_case[0]] = 'N' if view == 'white' else 'n'
@@ -362,7 +359,6 @@ def handle_move(start_case, end_case):
             moves.extend(line)
 
         if tuple(end_case) not in moves:
-            print("b")
             return False
         else:
             board[end_case[1]][end_case[0]] = 'B' if view == 'white' else 'b'
@@ -379,7 +375,6 @@ def handle_move(start_case, end_case):
             moves.extend(line)
 
         if tuple(end_case) not in moves:
-            print("r")
             return False
 
         board[end_case[1]][end_case[0]] = 'R' if view == 'white' else 'r'
@@ -407,7 +402,6 @@ def handle_move(start_case, end_case):
                 line.append(next_case)
             moves.extend(line)
         if tuple(end_case) not in moves:
-            print("q")
             return False
         else:
             board[end_case[1]][end_case[0]] = 'Q' if view == 'white' else 'q'
@@ -434,7 +428,6 @@ def handle_move(start_case, end_case):
                         if is_attacked((5, castle_row)) or is_attacked(end_case):
                             board = saved_board[:]
                             kings = saved_kings[:]
-                            print("k")
                             return False
                         done_tmp = True
 
@@ -452,17 +445,13 @@ def handle_move(start_case, end_case):
                         if is_attacked((3, castle_row)):
                             board = saved_board[:]
                             kings = saved_kings[:]
-                            print("k")
                             return False
                     else:
-                        print("k")
                         return False
             else:
-                print("k")
                 return False
 
         elif friend_there(end_case):
-            print("k")
             return False
         else:  # consequently, direction is in king patterns
             board[end_case[1]][end_case[0]] = 'K' if view == 'white' else 'k'
@@ -470,15 +459,12 @@ def handle_move(start_case, end_case):
             kings[view] = tuple(end_case)
         castle[view] = [0, 0]
 
-    print(kings)
     # check if king in check
     if is_attacked(kings[view]):
         board = [[e for e in row] for row in saved_board]
         en_passant = saved_en_passant.copy()
         castle = saved_castle.copy()
         kings = saved_kings.copy()
-        print(kings)
-        print("iahm")
         return False
 
     return True

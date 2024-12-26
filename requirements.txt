@@ -1,0 +1,8 @@
+evdev==1.7.1
+ion-numworks==2.0.1
+kandinsky==2.7.2
+pynput==1.7.7
+PySDL2==0.9.16
+pysdl2-dll==2.30.10
+python-xlib==0.33
+six==1.17.0
